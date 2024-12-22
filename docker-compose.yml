@@ -1,0 +1,43 @@
+services:
+  broker:
+    image: apache/kafka:latest
+    container_name: broker
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,LOCAL://:9091
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:9092, LOCAL://localhost:9091
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,LOCAL:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@broker:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_NUM_PARTITIONS: 3
+    ports:
+      - "9091:9091" # Expose Kafka broker port on localhost:9091
+  streams-api:
+    build: ./streams-api
+    depends_on:
+      - broker
+    environment:
+      APPLICATION_ID: yt_stream
+      BOOTSTRAP_SERVERS: broker:9092
+      SOURCE_TOPIC: youtube
+      SINK_TOPIC: youtube_changes
+  fetcher:
+    build: ./fetch-data
+    depends_on:
+      - streams-api
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: broker:9092
+      FETCH_INTERVAL: 300
+      YT_PLAYLIST_ID: PLPsEmpgRH1jmz8FVjoqMrUK-LEuBTstnP
+  bot:
+    build: ./bot
+    depends_on:
+      - streams-api
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: broker:9092
+      KAFKA_TOPIC: youtube_changes
