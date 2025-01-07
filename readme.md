@@ -1,6 +1,7 @@
 # Youtube Data Streaming & Notification System
 
 *This readme is incomplete*
+
 ## Table of contents
 
 - [About](#about)
@@ -10,7 +11,7 @@
     2. [Transforming the Stream of Data](#transforming-the-stream-of-data)
     3. [Consuming the Stream of Data](#consuming-the-stream-of-data)
 - [Docker](#docker)
-    1. [Dockerfile](#dockerfile)
+    1. [Dockerfiles](#dockerfiles)
     2. [Docker-Compose](#docker-compose)
 - [Improvements](#improvements)
 - [My Experience](#my-experience)
@@ -57,10 +58,19 @@ What I don't like about this implementation is that it can only handle a specifi
 A simple discord bot was created to consume the output Kafka topic and send notification messages to the corresponding channel.
 ## Docker
 
-### Dockerfile
+4 main dockerized services
+- Python discord bot (built from Dockerfile)
+- Python fetch script (built from Dockerfile)
+- Java stream transformer (built from Dockerfile)
+- Kafka image from docker hub 
+### Dockerfiles
 
+For python services, the Dockerfile copies requirements.txt into the container and uses pip to install these requirements. The .env file is also copied inside the container as a way to insert secrets into the environment (without exposing them to source control).
+
+For the Java service, a FAT jar (executable containing all dependencies) must be built and the Dockerfile copies this into the container and runs it.
 ### Docker-compose
 
+The docker-compose file provides an easy way to spin up all the services. Since docker-compose will automatically create a private network between the services, they can connect to each other using their names (e.g. `broker:9091`). Non-secret environmental variables are also specified in this file.
 ## Improvement ideas
 
 - [ ] Generalize data to not be specific for Youtube video data

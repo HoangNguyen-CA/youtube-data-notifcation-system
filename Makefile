@@ -12,5 +12,3 @@ kafka-exec:
 	docker exec --workdir /opt/kafka/bin/ -it broker sh
 
 .PHONY: docker-up docker-build docker-down kafka-exec mvn-build build-all
-
-
